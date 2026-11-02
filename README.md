@@ -114,3 +114,6 @@ Các sự kiện được gửi lên điện thoại:
 
 ## Phong cách Đồ họa: Nhóm 6 - Neon
 - Prompt Neon phát quang rực rỡ.
+
+## Thành viên Nhóm 6
+- Trương Từ Long (AI 2.1)
