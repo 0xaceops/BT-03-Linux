@@ -1,0 +1,50 @@
+# VM-CORE: database + web/api + planner + gateway (Cloudflare Tunnel)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: kho
+      POSTGRES_USER: kho
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kho"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./api
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://kho:${POSTGRES_PASSWORD}@db:5432/kho
+      WORKER_TOKEN: ${WORKER_TOKEN}
+      NTFY_URL: ${NTFY_URL}
+      NOTIFY_EVERY: ${NOTIFY_EVERY:-1}
+      BARK_URL: ${BARK_URL:-}
+    volumes: [images:/data/images]
+    ports: ["8000:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+
+  planner:
+    build: ./planner
+    restart: always
+    environment:
+      API_URL: http://api:8000
+      WORKER_TOKEN: ${WORKER_TOKEN}
+      OLLAMA_URL: ${OLLAMA_URL:-}
+      NTFY_URL: ${NTFY_URL}
+      BARK_URL: ${BARK_URL:-}
+    depends_on: [api]
+
+  # Gateway: tao link https://xxxx.trycloudflare.com mien phi, khong can mo port / IP tinh
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel --no-autoupdate --url http://api:8000
+    depends_on: [api]
+
+volumes:
+  dbdata:
+  images:

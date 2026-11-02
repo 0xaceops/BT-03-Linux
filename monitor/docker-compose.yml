@@ -1,0 +1,34 @@
+# VM-MONITOR: ntfy (log dien thoai) + Beszel (CPU/RAM moi VM) + Uptime Kuma (website song/chet)
+services:
+  ntfy:
+    image: binwiederhall/ntfy
+    command: serve
+    restart: always
+    environment:
+      NTFY_BASE_URL: ${NTFY_BASE_URL:-http://localhost:2586}
+    volumes: [ntfy-cache:/var/cache/ntfy]
+    ports: ["2586:80"]
+
+  beszel:
+    image: henrygd/beszel:latest
+    restart: always
+    ports: ["8090:8090"]
+    volumes: [beszel-data:/beszel_data]
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: always
+    ports: ["3001:3001"]
+    volumes: [kuma-data:/app/data]
+
+  # (tuy chon) dua ntfy ra Internet de dien thoai o ngoai nhan duoc: docker compose --profile tunnel up -d
+  ntfy-tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    restart: always
+    command: tunnel --no-autoupdate --url http://ntfy:80
+
+volumes:
+  ntfy-cache:
+  beszel-data:
+  kuma-data:

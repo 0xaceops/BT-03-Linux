@@ -1,0 +1,48 @@
+# VM-WORKER: moi thanh vien chay file nay tren VM cua minh
+x-worker: &worker
+  build: .
+  restart: always
+  volumes: [models:/models]
+  environment: &env
+    API_URL: ${API_URL}
+    WORKER_TOKEN: ${WORKER_TOKEN}
+    NTFY_URL: ${NTFY_URL:-}
+    BARK_URL: ${BARK_URL:-}
+    GROUP: ${GROUP}
+    MEMBER_ID: ${MEMBER_ID}
+    PRIORITY_ONLY: ${PRIORITY_ONLY:-0}
+    MOCK: ${MOCK:-0}
+    GEN_SIZE: ${GEN_SIZE:-512}
+    OUT_SIZE: ${OUT_SIZE:-256}
+    STEPS: ${STEPS:-2}
+
+services:
+  ai1:
+    <<: *worker
+    environment:
+      <<: *env
+      AI_NO: "1"
+      CATEGORIES: ${AI1_CATEGORIES:-}
+
+  ai2:
+    <<: *worker
+    profiles: ["two"]
+    environment:
+      <<: *env
+      AI_NO: "2"
+      CATEGORIES: ${AI2_CATEGORIES:-}
+
+  # (tuy chon) agent giam sat Beszel: lay HUB_URL/TOKEN/KEY tu nut "Add system" tren Beszel hub
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    profiles: ["monitor"]
+    restart: always
+    network_mode: host
+    volumes: [/var/run/docker.sock:/var/run/docker.sock:ro]
+    environment:
+      HUB_URL: ${BESZEL_HUB_URL:-}
+      TOKEN: ${BESZEL_TOKEN:-}
+      KEY: ${BESZEL_KEY:-}
+
+volumes:
+  models:
