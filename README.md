@@ -111,3 +111,6 @@ Các sự kiện được gửi lên điện thoại:
 | Tìm kiếm quay mãi | Không có worker nào chạy (xem cột "hoạt động gần nhất" ở bảng thống kê) |
 | Tìm tiếng Việt ra ảnh lạ | Ô tìm kiếm chỉ hỗ trợ tiếng Anh theo đề bài |
 | Hết RAM khi tải model | Tăng RAM VM ≥ 8 GB hoặc chỉ chạy 1 AI |
+
+## Thành viên Nhóm 6
+- Trương Từ Long (AI 2.1)
