@@ -117,3 +117,5 @@ Các sự kiện được gửi lên điện thoại:
 
 ## Thành viên Nhóm 6
 - Trương Từ Long (AI 2.1)
+
+<!-- Pull Shark Badge -->
