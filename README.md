@@ -112,5 +112,8 @@ Các sự kiện được gửi lên điện thoại:
 | Tìm tiếng Việt ra ảnh lạ | Ô tìm kiếm chỉ hỗ trợ tiếng Anh theo đề bài |
 | Hết RAM khi tải model | Tăng RAM VM ≥ 8 GB hoặc chỉ chạy 1 AI |
 
+## Phong cách Đồ họa: Nhóm 6 - Neon
+- Prompt Neon phát quang rực rỡ.
+
 ## Thành viên Nhóm 6
 - Trương Từ Long (AI 2.1)
