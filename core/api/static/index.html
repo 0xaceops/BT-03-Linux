@@ -311,8 +311,15 @@ footer {
 <main>
   <div id="msg" hidden></div>
   <div class="section-bar">
-    <div class="section-title" id="title">Kho ảnh mới nhất (Trang 1)</div>
-    <div id="total-badge" style="font-size:0.85rem; color:var(--text-muted)">Đang nạp…</div>
+    <div>
+      <div class="section-title" id="title">Kho ảnh mới nhất (Trang 1)</div>
+      <div id="total-badge" style="font-size:0.82rem; color:var(--text-muted); margin-top:3px;">Đang nạp…</div>
+    </div>
+    <div class="pagination-quick" id="pagination-top" style="display:flex; gap:8px; align-items:center;">
+      <button class="btn btn-ghost" style="padding:6px 14px; font-size:0.82rem;" id="btn-prev-top" onclick="changePage(-1)">← Trước</button>
+      <span class="page-info" id="page-display-top" style="font-size:0.82rem;">1 / 1</span>
+      <button class="btn btn-ghost" style="padding:6px 14px; font-size:0.82rem;" id="btn-next-top" onclick="changePage(1)">Sau →</button>
+    </div>
   </div>
   
   <div class="grid" id="grid"></div>
@@ -372,10 +379,17 @@ async function loadLatest(page = 1) {
     
     $('#title').textContent = `Kho ảnh mới nhất (Trang ${res.page})`;
     $('#total-badge').textContent = `Tổng kho: ${res.total} ảnh`;
-    $('#page-display').textContent = `Trang ${res.page} / ${totalPages}`;
+    $('#page-display').textContent = `Trang ${res.page} / ${totalPages} (${res.total} ảnh · 50 ảnh/trang)`;
     $('#btn-prev').disabled = (res.page <= 1);
     $('#btn-next').disabled = (res.page >= totalPages);
     $('#pagination').hidden = false;
+
+    if ($('#page-display-top')) {
+      $('#page-display-top').textContent = `${res.page} / ${totalPages}`;
+      $('#btn-prev-top').disabled = (res.page <= 1);
+      $('#btn-next-top').disabled = (res.page >= totalPages);
+      $('#pagination-top').hidden = false;
+    }
 
     $('#grid').innerHTML = res.images.map(img => card(img, false)).join('');
   } catch(e) {
@@ -395,6 +409,7 @@ async function doSearch(q) {
   const token = ++searchToken;
   isSearching = true;
   $('#pagination').hidden = true;
+  if ($('#pagination-top')) $('#pagination-top').hidden = true;
   $('#back').hidden = false;
   $('#msg').hidden = true;
 

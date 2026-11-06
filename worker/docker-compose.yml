@@ -8,7 +8,7 @@ x-worker: &worker
     WORKER_TOKEN: ${WORKER_TOKEN}
     NTFY_URL: ${NTFY_URL:-}
     BARK_URL: ${BARK_URL:-}
-    GROUP: ${GROUP}
+    GROUP: ${GROUP:-6}
     MEMBER_ID: ${MEMBER_ID}
     PRIORITY_ONLY: ${PRIORITY_ONLY:-0}
     MOCK: ${MOCK:-0}
@@ -22,6 +22,8 @@ services:
     environment:
       <<: *env
       AI_NO: "1"
+      MODEL_ID: ${AI1_MODEL_ID:-stabilityai/sd-turbo}
+      MODEL_NAME: ${AI1_MODEL_NAME:-SD-Turbo}
       CATEGORIES: ${AI1_CATEGORIES:-}
 
   ai2:
@@ -30,6 +32,8 @@ services:
     environment:
       <<: *env
       AI_NO: "2"
+      MODEL_ID: ${AI2_MODEL_ID:-segmind/tiny-sd}
+      MODEL_NAME: ${AI2_MODEL_NAME:-Tiny-SD}
       CATEGORIES: ${AI2_CATEGORIES:-}
 
   # (tuy chon) agent giam sat Beszel: lay HUB_URL/TOKEN/KEY tu nut "Add system" tren Beszel hub

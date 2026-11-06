@@ -9,7 +9,7 @@ STYLES = {
  3:  ("Mondrian geometric", "Piet Mondrian De Stijl, flat primary colors red yellow blue, thick black grid lines, geometric abstraction", "mondrian"),
  4:  ("Ukiyo-e", "ukiyo-e Japanese woodblock print, flat colors, bold outlines, washi paper texture", None),
  5:  ("Watercolor", "watercolor painting, soft translucent washes, paper texture, white background", None),
- 6:  ("Neon", "glowing neon light sign art, vibrant luminous neon tube outlines, electric neon glow, pure deep black background, crisp detailed subject", "neon"),
+ 6:  ("Neon", "clear recognizable subject, sharp well-defined details, vibrant neon edge glow, luminous accent lighting, deep dark background, crisp specimen illustration", "neon"),
  7:  ("Blueprint", "technical blueprint drawing, white line schematic, on blue paper", "blueprint"),
  8:  ("Black & white woodcut", "black and white woodcut print, linocut, bold carved lines, high contrast engraving", "woodcut"),
  9:  ("Pop art", "pop art, Roy Lichtenstein style, bold black outlines, flat bright colors, ben-day dots", "popart"),
@@ -40,10 +40,12 @@ def _blueprint(im, out):
 
 
 def _neon(im, out):
-    im = ImageEnhance.Color(im).enhance(2.2)
-    im = ImageEnhance.Contrast(im).enhance(1.4)
-    glow = im.filter(ImageFilter.GaussianBlur(5))
-    res = ImageChops.screen(im, glow)
+    # Ưu tiên nhận diện rõ đối tượng, giữ nét chi tiết + viền phát sáng neon tinh tế
+    im = ImageEnhance.Color(im).enhance(1.25)
+    im = ImageEnhance.Contrast(im).enhance(1.15)
+    glow = im.filter(ImageFilter.GaussianBlur(2))
+    res = Image.blend(im, ImageChops.screen(im, glow), alpha=0.35)
+    res = ImageEnhance.Sharpness(res).enhance(1.3)
     return res.resize((out, out), Image.LANCZOS)
 
 

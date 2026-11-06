@@ -18,6 +18,14 @@ GEN = int(os.environ.get("GEN_SIZE", "512"))        # kich thuoc model sinh
 OUT = int(os.environ.get("OUT_SIZE", "256"))        # kich thuoc luu kho (>=128)
 STEPS = int(os.environ.get("STEPS", "2"))
 MODEL = os.environ.get("MODEL_ID", "stabilityai/sd-turbo")
+MODEL_NAME = os.environ.get("MODEL_NAME", "")
+if not MODEL_NAME:
+    m_low = MODEL.lower()
+    if "turbo" in m_low: MODEL_NAME = "SD-Turbo"
+    elif "tiny" in m_low: MODEL_NAME = "Tiny-SD"
+    elif "lcm" in m_low: MODEL_NAME = "LCM-Dreamshaper"
+    elif "bk-sdm" in m_low: MODEL_NAME = "BK-SDM"
+    else: MODEL_NAME = MODEL.split("/")[-1][:12]
 NTFY = os.environ.get("NTFY_URL", "")
 BARK = os.environ.get("BARK_URL", "")
 H = {"X-Token": TOKEN}
@@ -98,13 +106,20 @@ def generate(name):
     if MOCK:
         raw = mock_image(name)
     else:
-        raw = get_pipe()(prompt=prompt_for(GROUP, name), num_inference_steps=STEPS,
-                         guidance_scale=0.0, width=GEN, height=GEN).images[0]
+        pipe = get_pipe()
+        prompt = prompt_for(GROUP, name)
+        m_low = MODEL.lower()
+        if "turbo" in m_low:
+            raw = pipe(prompt=prompt, num_inference_steps=STEPS, guidance_scale=0.0, width=GEN, height=GEN).images[0]
+        elif "lcm" in m_low:
+            raw = pipe(prompt=prompt, num_inference_steps=max(2, STEPS), guidance_scale=1.5, width=GEN, height=GEN).images[0]
+        else:
+            raw = pipe(prompt=prompt, num_inference_steps=max(4, STEPS), guidance_scale=2.0, width=GEN, height=GEN).images[0]
     return postprocess(GROUP, raw, OUT)
 
 
 def main():
-    log(f"khoi dong | phong cach: {STYLES[GROUP][0]} | danh muc: {CATS or 'tat ca'} | uu tien-only: {PRIORITY_ONLY} | mock: {MOCK}")
+    log(f"khoi dong | model: {MODEL_NAME} ({MODEL}) | phong cach: {STYLES[GROUP][0]} | danh muc: {CATS or 'tat ca'} | uu tien-only: {PRIORITY_ONLY} | mock: {MOCK}")
     notify(f"AI {WID} online", f"Style {STYLES[GROUP][0]}, cats={CATS or 'all'}", "robot")
     if not MOCK:
         t = time.time()
@@ -114,7 +129,7 @@ def main():
     while True:
         try:
             r = requests.post(API + "/api/worker/claim", headers=H, timeout=15,
-                              json={"worker_id": WID, "categories": CATS, "priority_only": PRIORITY_ONLY})
+                              json={"worker_id": WID, "model_name": MODEL_NAME, "categories": CATS, "priority_only": PRIORITY_ONLY})
             r.raise_for_status()
             job = r.json()["job"]
         except Exception as e:

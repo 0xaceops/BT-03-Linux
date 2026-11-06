@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS jobs(
   tries INT DEFAULT 0, image_id INT, created_at TIMESTAMPTZ DEFAULT now(),
   started_at TIMESTAMPTZ);
 CREATE INDEX IF NOT EXISTS jobs_status ON jobs(status, priority DESC, id);
-CREATE TABLE IF NOT EXISTS workers(ai_id TEXT PRIMARY KEY, last_seen TIMESTAMPTZ DEFAULT now());
+CREATE TABLE IF NOT EXISTS workers(ai_id TEXT PRIMARY KEY, model_name TEXT DEFAULT 'SD-Turbo', last_seen TIMESTAMPTZ DEFAULT now());
 """
 
 pool = None
@@ -169,6 +169,7 @@ def startup():
             pool = ThreadedConnectionPool(1, 10, DB_URL)
             with cur() as c:
                 c.execute(SCHEMA)
+                c.execute("ALTER TABLE workers ADD COLUMN IF NOT EXISTS model_name TEXT DEFAULT 'SD-Turbo'")
             break
         except Exception as e:
             print("cho database...", e)
@@ -275,13 +276,15 @@ def stats():
             }
 
         # Workers heartbeat
-        c.execute("SELECT ai_id, last_seen, extract(epoch from now()-last_seen) age FROM workers")
+        c.execute("SELECT ai_id, model_name, last_seen, extract(epoch from now()-last_seen) age FROM workers")
         for r in c.fetchall():
             d = ai_data.setdefault(r["ai_id"], {
                 "ai_id": r["ai_id"], "count": 0, "count_60m": 0,
-                "last_created": "-", "last_created_ago": "-", "last_seen_age": None
+                "last_created": "-", "last_created_ago": "-", "last_seen_age": None,
+                "model_name": "SD-Turbo"
             })
             d["last_seen_age"] = r["age"]
+            d["model_name"] = r.get("model_name") or "SD-Turbo"
 
         # Sort AI by (member_id, ai_no)
         key = lambda a: tuple(int(x) for x in a["ai_id"].split("."))
@@ -292,10 +295,11 @@ def stats():
         for a in sorted_ais:
             mid = a["ai_id"].split(".")[0]
             is_online = (a["last_seen_age"] is not None and a["last_seen_age"] <= OFFLINE_SEC)
+            m_name = a.get("model_name") or "SD-Turbo"
             by_ai.append({
                 "ai_code": a["ai_id"],
                 "member_name": MEMBERS.get(mid, f"Thành viên {mid}"),
-                "model": "SD-Turbo (Neon)",
+                "model": f"{m_name} (Neon)",
                 "count": a["count"],
                 "count_60m": a["count_60m"],
                 "last_image": f"{a['last_created']} · {a['last_created_ago']}" if a["last_created"] != "-" else "-",
@@ -381,6 +385,7 @@ class Claim(BaseModel):
     worker_id: str
     categories: list[str] = []
     priority_only: bool = False
+    model_name: str = "SD-Turbo"
 
 
 @app.post("/api/worker/claim", dependencies=[Depends(auth)])
@@ -388,8 +393,8 @@ def claim(b: Claim):
     if not re.fullmatch(r"\d+\.\d+", b.worker_id):
         raise HTTPException(400, "worker_id phai dang 2.1")
     with cur() as c:
-        c.execute("""INSERT INTO workers(ai_id) VALUES(%s)
-                     ON CONFLICT (ai_id) DO UPDATE SET last_seen=now()""", (b.worker_id,))
+        c.execute("""INSERT INTO workers(ai_id, model_name) VALUES(%s, %s)
+                     ON CONFLICT (ai_id) DO UPDATE SET model_name=EXCLUDED.model_name, last_seen=now()""", (b.worker_id, b.model_name))
         c.execute("UPDATE jobs SET status='pending' WHERE status='running' AND started_at < now()-interval '5 minutes'")
         c.execute("""UPDATE jobs SET status='running', claimed_by=%(w)s, started_at=now()
             WHERE id=(SELECT id FROM jobs WHERE status='pending'
