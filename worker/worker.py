@@ -10,7 +10,7 @@ TOKEN = os.environ.get("WORKER_TOKEN", "change-me")
 MEMBER = os.environ["MEMBER_ID"]
 AI_NO = os.environ.get("AI_NO", "1")
 WID = f"{MEMBER}.{AI_NO}"
-GROUP = int(os.environ.get("GROUP", "1"))
+GROUP = int(os.environ.get("GROUP", "6"))
 CATS = [c.strip() for c in os.environ.get("CATEGORIES", "").split(",") if c.strip()]
 PRIORITY_ONLY = os.environ.get("PRIORITY_ONLY", "0") == "1"
 MOCK = os.environ.get("MOCK", "0") == "1"          # MOCK=1: ve hinh don gian de test he thong
@@ -54,16 +54,43 @@ def get_pipe():
 
 
 def mock_image(name):
+    """Tạo ảnh đồ họa Neon Sign sắc nét trên nền tối sâu thẳm."""
     rnd = random.Random(int(hashlib.md5(name.encode()).hexdigest(), 16))
-    im = Image.new("RGB", (GEN, GEN), tuple(rnd.randint(150, 255) for _ in range(3)))
+    
+    # Nền tối sâu chuẩn bảng màu Cyber-Neon
+    im = Image.new("RGB", (GEN, GEN), (8, 10, 16))
     d = ImageDraw.Draw(im)
-    for _ in range(6):
-        x, y = rnd.randint(0, GEN - 120), rnd.randint(0, GEN - 120)
-        s = rnd.randint(60, 220)
-        box = (x, y, x + s, y + s)
-        col = tuple(rnd.randint(0, 255) for _ in range(3))
-        d.ellipse(box, fill=col) if rnd.random() < .5 else d.rectangle(box, fill=col)
-    d.text((12, GEN - 24), name, fill=(0, 0, 0))
+    
+    # Bảng màu Neon rực rỡ
+    NEON_COLORS = [
+        (0, 243, 255),   # Neon Cyan
+        (255, 0, 128),   # Neon Magenta
+        (0, 255, 136),   # Neon Green
+        (255, 187, 0),   # Neon Amber
+        (170, 70, 255)   # Neon Purple
+    ]
+    primary_col = rnd.choice(NEON_COLORS)
+    secondary_col = rnd.choice(NEON_COLORS)
+    
+    # Khung viền phát quang đôi
+    d.rectangle([16, 16, GEN-16, GEN-16], outline=tuple(c//4 for c in primary_col), width=3)
+    d.rectangle([20, 20, GEN-20, GEN-20], outline=primary_col, width=2)
+    
+    # Vẽ biểu tượng neon trung tâm
+    cx, cy = GEN // 2, GEN // 2 - 20
+    r = rnd.randint(70, 110)
+    
+    d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=primary_col, width=5)
+    d.ellipse([cx-r+8, cy-r+8, cx+r-8, cy+r-8], outline=(255, 255, 255), width=2)
+    
+    # Chi tiết phát sáng bên trong
+    d.line([(cx-r+30, cy), (cx+r-30, cy)], fill=secondary_col, width=4)
+    d.line([(cx, cy-r+30), (cx, cy+r-30)], fill=secondary_col, width=4)
+    
+    # Tên bách khoa neon
+    d.text((32, GEN - 48), name.upper(), fill=primary_col)
+    d.text((32, GEN - 28), "ENCYCLOPEDIA NEON PLATE", fill=(120, 140, 170))
+    
     return im
 
 

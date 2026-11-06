@@ -40,9 +40,9 @@ def _blueprint(im, out):
 
 
 def _neon(im, out):
-    im = ImageEnhance.Color(im).enhance(2.0)
-    im = ImageEnhance.Contrast(im).enhance(1.35)
-    glow = im.filter(ImageFilter.GaussianBlur(4))
+    im = ImageEnhance.Color(im).enhance(2.2)
+    im = ImageEnhance.Contrast(im).enhance(1.4)
+    glow = im.filter(ImageFilter.GaussianBlur(5))
     res = ImageChops.screen(im, glow)
     return res.resize((out, out), Image.LANCZOS)
 

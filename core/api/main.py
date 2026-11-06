@@ -1,5 +1,5 @@
 """Module WEB/API: trang chu, tim kiem, hang doi job, nhan anh tu worker."""
-import io, os, re, time, threading
+import io, math, os, re, time, threading
 from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import quote
@@ -187,10 +187,30 @@ def health():
 
 
 @app.get("/api/latest")
-def latest(limit: int = 50):
+def latest(page: int = 1, limit: int = 50):
+    """Lấy danh sách ảnh trang chủ có hỗ trợ phân trang (50 ảnh/trang, mới nhất lên đầu)."""
+    page = max(1, page)
+    limit = min(max(1, limit), 100)
+    offset = (page - 1) * limit
     with cur() as c:
-        c.execute("SELECT * FROM images ORDER BY created_at DESC, id DESC LIMIT %s", (min(limit, 200),))
-        return {"images": [img_json(r) for r in c.fetchall()]}
+        c.execute("SELECT count(*) as total FROM images")
+        total = c.fetchone()["total"]
+        total_pages = math.ceil(total / limit) if total > 0 else 1
+
+        c.execute("""
+            SELECT * FROM images 
+            ORDER BY created_at DESC, id DESC 
+            LIMIT %s OFFSET %s
+        """, (limit, offset))
+        rows = c.fetchall()
+
+        return {
+            "images": [img_json(r) for r in rows],
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "total_pages": total_pages
+        }
 
 
 @app.get("/api/search")
