@@ -110,7 +110,7 @@ MEMBERS = {
     "1": os.environ.get("MEMBER_NAME_1", "Lê Văn Minh"),
     "2": os.environ.get("MEMBER_NAME_2", "Trương Từ Long"),
     "3": os.environ.get("MEMBER_NAME_3", "Trịnh Tiến Minh C"),
-    "4": os.environ.get("MEMBER_NAME_4", "Mai Văn Lượng D"),
+    "4": os.environ.get("MEMBER_NAME_4", "Mai Văn Lượng"),
     "5": os.environ.get("MEMBER_NAME_5", "Lê Văn Minh"),
 }
 
