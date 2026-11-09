@@ -107,11 +107,11 @@ def cur():
 _startup_time = time.time()
 
 MEMBERS = {
-    "1": os.environ.get("MEMBER_NAME_1", "Nhóm trưởng"),
+    "1": os.environ.get("MEMBER_NAME_1", "Lê Văn Minh"),
     "2": os.environ.get("MEMBER_NAME_2", "Trương Từ Long"),
-    "3": os.environ.get("MEMBER_NAME_3", "Thành viên 3"),
-    "4": os.environ.get("MEMBER_NAME_4", "Thành viên 4"),
-    "5": os.environ.get("MEMBER_NAME_5", "Thành viên 5"),
+    "3": os.environ.get("MEMBER_NAME_3", "Trịnh Tiến Minh C"),
+    "4": os.environ.get("MEMBER_NAME_4", "Mai Văn Lượng D"),
+    "5": os.environ.get("MEMBER_NAME_5", "Lê Văn Minh"),
 }
 
 if os.environ.get("MEMBER_NAMES"):
